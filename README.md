@@ -4,7 +4,7 @@
 
 `docker-compose up -d` (Необходимы установленные docker и docker-compose)<br>
 
-После перейти по адресу [Тестовое задание](http://localhost:80)<br>
+После перейти по адресу [Тестовое задание](http://localhost:1000)<br>
 
 
 

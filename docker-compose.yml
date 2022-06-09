@@ -3,7 +3,11 @@ services:
   postgres:
     image: 'postgres:latest'
     environment:
-      - POSTGRES_PASSWORD=postgres_password
+      - POSTGRES_PASSWORD=super_password
+      - POSTGRES_USER=programmer4876
+      - POSTGRES_DB=chat
+    volumes:
+      - ./data:/var/lib/postgresql/data
   nginx:
     depends_on:
       - api
@@ -13,7 +17,7 @@ services:
       dockerfile: Dockerfile.dev
       context: ./config/nginx
     ports:
-      - '80:80'
+      - '1000:1000'
   api:
     build:
       dockerfile: Dockerfile.dev
@@ -21,6 +25,8 @@ services:
     volumes:
       - /app/node_modules
       - ./server:/app
+    depends_on:
+      - postgres
   client:
     stdin_open: true
     build:
@@ -29,3 +35,5 @@ services:
     volumes:
       - /app/node_modules
       - ./client:/app
+    ports:
+      - '3000:3000'
