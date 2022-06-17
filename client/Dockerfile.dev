@@ -1,7 +1,7 @@
 FROM node:latest
 WORKDIR /app
 COPY --chown=node:node ./package.json ./
-RUN npm install
+RUN npm install --force
 COPY --chown=node:node . .
 USER node
 CMD ["npm", "run", "start"]

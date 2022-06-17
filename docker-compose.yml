@@ -7,7 +7,9 @@ services:
       - POSTGRES_USER=programmer4876
       - POSTGRES_DB=chat
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./database/data:/var/lib/postgresql/data
+    ports:
+      - '54321:5432'
   nginx:
     depends_on:
       - api
@@ -22,11 +24,15 @@ services:
     build:
       dockerfile: Dockerfile.dev
       context: ./server
+    env_file:
+      - .env
     volumes:
       - /app/node_modules
       - ./server:/app
     depends_on:
       - postgres
+    ports:
+      - '5000:5000'
   client:
     stdin_open: true
     build:
