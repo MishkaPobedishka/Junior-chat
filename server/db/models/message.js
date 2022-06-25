@@ -14,6 +14,13 @@ const Message = sequelize.define("message" , {
     },
     dialog_id: {
         type: DataTypes.UUIDV4,
+        references: {
+            model: {
+                tableName: 'dialog',
+                schema: 'public'
+            },
+            key: 'id'
+        },
         allowNull: false
     },
     message: {
