@@ -3,7 +3,7 @@ const sequelize = require('../util/index');
 
 const User = sequelize.define("user" , {
   id: {
-    type: DataTypes.UUIDV4,
+    type: DataTypes.UUID,
     allowNull: false,
     primaryKey: true
   },

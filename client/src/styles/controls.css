@@ -1,0 +1,19 @@
+.controlLoginSize {
+    width: 375px!important;
+    height: 60px;
+}
+
+.controlLoginButton {
+    width: 375px!important;
+    height: 45px;
+}
+
+.controlRegistrationSize {
+    width: 475px!important;
+    height: 50px;
+}
+
+.controlRegistrationButton {
+    width: 475px!important;
+    height: 50px;
+}

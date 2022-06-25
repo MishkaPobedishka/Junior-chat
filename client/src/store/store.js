@@ -2,9 +2,11 @@ import {makeAutoObservable} from "mobx";
 import AuthService from "../services/AuthService";
 import axios from "axios";
 import {API_URL} from "../http";
+import ChatService from "../services/ChatService";
 
 export default class Store{
-    chat = {};
+    user = {};
+    dialogs = {};
     isAuth = false;
     isLoading = false;
     constructor() {
@@ -15,12 +17,16 @@ export default class Store{
         this.isAuth = bool;
     }
 
-    setChat(chat) {
-        this.chat = chat;
+    setUser(user) {
+        this.user = user;
     }
 
     setLoading(bool) {
         this.isLoading = bool;
+    }
+
+    setDialogs(dialogs) {
+        this.dialogs = dialogs;
     }
 
     async login(email, password) {
@@ -29,7 +35,7 @@ export default class Store{
             console.log(response);
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
-            this.setChat(response.data.user)
+            this.setUser(response.data.user)
         } catch (e) {
             console.log(e.response?.data?.message);
         }
@@ -41,7 +47,7 @@ export default class Store{
             console.log(response);
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
-            this.setChat(response.data.user)
+            this.setUser(response.data.user)
         } catch (e) {
             console.log(e.response?.data?.message);
         }
@@ -53,7 +59,7 @@ export default class Store{
             console.log(response);
             localStorage.removeItem('token');
             this.setAuth(false);
-            this.setChat({})
+            this.setUser({})
         } catch (e) {
             console.log(e.response?.data?.message);
         }
@@ -63,14 +69,22 @@ export default class Store{
         this.setLoading(true);
         try {
             const response = await axios.get(`${API_URL}/refresh`, {withCredentials: true})
-            console.log(response);
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
-            this.setChat(response.data.user)
+            this.setUser(response.data.user)
         } catch (e) {
             console.log(e.response?.data?.message);
         } finally {
             this.setLoading(false);
+        }
+    }
+
+    async getDialogs() {
+        try {
+            const response = await ChatService.getDialogs();
+            this.setDialogs(response.data.dialogs);
+        } catch (e) {
+
         }
     }
 }

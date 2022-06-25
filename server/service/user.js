@@ -66,7 +66,6 @@ class UserService {
         if (! userData || !tokenFromDb) {
             throw ApiError.UnauthorizedError();
         }
-        console.log(userData.userId);
         const user = await User.findOne({
             where: {id: tokenFromDb.userId}
         })

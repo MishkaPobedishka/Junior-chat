@@ -3,7 +3,7 @@ const {validationResult} = require('express-validator')
 const ApiError = require('../exceptions/api-error')
 
 class AuthController {
-    async registartion(req, res, next) {
+    async registration(req, res, next) {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -20,6 +20,10 @@ class AuthController {
 
     async login(req, res, next) {
         try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return next(ApiError.BadRequest('Ошибка валидации', errors.array()));
+            }
             const {email, password} = req.body;
             const userData = await userService.login(email, password);
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
@@ -48,15 +52,6 @@ class AuthController {
             return res.json(userData);
         } catch (e) {
             next(e)
-        }
-    }
-
-    async getChats(req, res, next) {
-        try {
-            const users = await userService.getUsers();
-            return res.json(users);
-        } catch (e) {
-            next(e);
         }
     }
 }

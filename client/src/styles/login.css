@@ -1,0 +1,33 @@
+.loginContainer {
+    margin-top: 15vh;
+    margin-left: 20vw!important;
+    height: 100%;
+}
+
+.loginPhoto {
+    width: 465px;
+    height: 750px;
+}
+
+.loginForm {
+    margin-top: 15vh;
+    margin-left: 150px;
+    margin-right: auto;
+
+}
+
+.controlLoginSize {
+    width: 375px!important;
+    height: 60px;
+}
+
+.controlLoginButton {
+    width: 375px!important;
+    height: 45px;
+}
+
+.registrationBlock {
+    display: flex;
+    flex-direction: row;
+
+}
