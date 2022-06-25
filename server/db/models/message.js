@@ -1,5 +1,5 @@
 const {DataTypes} = require('sequelize');
-const sequelize = require('../util/index');
+const sequelize = require('../../util');
 const Dialog = require("./dialog");
 
 const Message = sequelize.define("message" , {

@@ -1,5 +1,5 @@
 const sequelize = require('../util/index');
-const User = require('../models/user');
+const User = require('../db/models/user');
 const bcrypt = require("bcrypt");
 const uuid = require('uuid')
 const tokenService = require('./token')

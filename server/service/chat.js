@@ -1,12 +1,12 @@
 const {sequelize, Op } = require('sequelize');
-const User = require('../models/user');
+const User = require('../db/models/user');
 const bcrypt = require("bcrypt");
 const uuid = require('uuid')
 const tokenService = require('./token')
 const UserDTO = require('../dtos/user')
 const ApiError = require('../exceptions/api-error')
-const Dialog = require("../models/dialog");
-const Message = require("../models/message");
+const Dialog = require("../db/models/dialog");
+const Message = require("../db/models/message");
 const DialogDTO = require("../dtos/dialog");
 
 class ChatService {
