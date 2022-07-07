@@ -45,6 +45,18 @@ export default class Store{
         this.arrivalMessage = arrivalMessage;
     }
 
+    setNewDialogArray() {
+        this.dialogs = this.dialogs.map(dialog => {
+            if (dialog.id === this.arrivalMessage.dialog_id) {
+                dialog.last_message = this.arrivalMessage.text;
+                if (!this.arrivalMessage.isRead && !(this.currentDialog?.id === dialog.id))
+                    dialog.missed_messages++;
+                return dialog;
+            }
+            return dialog;
+        })
+    }
+
     async login(email, password) {
         try {
             const response = await AuthService.login(email, password);

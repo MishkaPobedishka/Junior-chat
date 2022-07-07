@@ -23,20 +23,24 @@ const Chat = () => {
             store.setArrivalMessage({
                 id: uuid(),
                 sender_id: data.senderId,
-                dialog_id: store.currentDialog?.id,
+                dialog_id: data.dialogId,
                 text: data.text,
                 is_read: data.isRead,
                 created_at: Date.now(),
             })
-            store.currentDialog.last_message = data.text;
         })
 
     }, [])
 
     useEffect(() => {
+        console.log('message income');
         store.arrivalMessage && store.arrivalMessage.sender_id === store.currentDialog?.receiver_id &&
             store.setMessages([...store.messages, store.arrivalMessage])
     }, [store.arrivalMessage, store.currentDialog]);
+
+    useEffect(() => {
+        store.setNewDialogArray();
+    }, [store.arrivalMessage]);
 
 
     useEffect(() => {
@@ -64,14 +68,17 @@ const Chat = () => {
 
     const handleSendMessage = (e) => {
         e.preventDefault();
-        store.sendMessage(newMessageText);
-        socket.current.emit('sendMessage', {
-            senderId: store.user.id,
-            receiverId: store.currentDialog.receiver_id,
-            text: newMessageText,
-            isRead: true,
-        })
-        setNewMessageText('');
+        if (newMessageText) {
+            store.sendMessage(newMessageText);
+            socket.current.emit('sendMessage', {
+                senderId: store.user.id,
+                dialogId: store.currentDialog.id,
+                receiverId: store.currentDialog.receiver_id,
+                text: newMessageText,
+                isRead: false,
+            })
+            setNewMessageText('');
+        }
     }
 
     useEffect(() => {
