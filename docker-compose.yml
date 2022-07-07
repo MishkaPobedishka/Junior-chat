@@ -33,6 +33,19 @@ services:
       - postgres
     ports:
       - '5000:5000'
+  socket:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./socket
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+      - ./socket:/app
+    depends_on:
+      - client
+    ports:
+      - '8900:8900'
   client:
     stdin_open: true
     build:

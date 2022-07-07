@@ -6,7 +6,11 @@ import ChatService from "../services/ChatService";
 
 export default class Store{
     user = {};
-    dialogs = {};
+    dialogs = [];
+    messages = [];
+    lastMessage = '';
+    arrivalMessage = null;
+    currentDialog = null;
     isAuth = false;
     isLoading = false;
     constructor() {
@@ -29,10 +33,21 @@ export default class Store{
         this.dialogs = dialogs;
     }
 
+    setCurrentDialog(currentDialog) {
+        this.currentDialog = currentDialog;
+    }
+
+    setMessages(messages) {
+        this.messages = messages;
+    }
+
+    setArrivalMessage(arrivalMessage) {
+        this.arrivalMessage = arrivalMessage;
+    }
+
     async login(email, password) {
         try {
             const response = await AuthService.login(email, password);
-            console.log(response);
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user)
@@ -44,7 +59,6 @@ export default class Store{
     async registration(first_name, last_name,email, password) {
         try {
             const response = await AuthService.registration(first_name, last_name,email, password);
-            console.log(response);
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user)
@@ -56,7 +70,6 @@ export default class Store{
     async logout() {
         try {
             const response = await AuthService.logout();
-            console.log(response);
             localStorage.removeItem('token');
             this.setAuth(false);
             this.setUser({})
@@ -81,10 +94,34 @@ export default class Store{
 
     async getDialogs() {
         try {
-            const response = await ChatService.getDialogs();
+            const response = await ChatService.getDialogs(this.user.id);
             this.setDialogs(response.data.dialogs);
         } catch (e) {
-
+            console.log(e.response?.data?.message);
         }
+    }
+
+    async getMessages() {
+        try {
+            if(this.currentDialog) {
+                const response = await ChatService.getMessages(this.currentDialog.id);
+                this.setMessages(response.data);
+            }
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async sendMessage(newMessageText) {
+        try {
+            const response = await ChatService.sendMessage(this.user.id, this.currentDialog.id, newMessageText)
+            this.setMessages([...this.messages, response.data])
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    openDialog(dialogId, missed_messages) {
+
     }
 }

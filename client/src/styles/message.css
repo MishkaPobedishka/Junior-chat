@@ -37,9 +37,9 @@
 
 .send-time {
     font-size: 12px;
-    max-width: 50px;
-    margin-left: 60px;
-    margin-right: 60px;
+    max-width: 110px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .message.own {

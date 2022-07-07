@@ -1,4 +1,4 @@
-import React, {useContext, useState}from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import {Button, Container, Form, Navbar} from "react-bootstrap";
 import {Context} from "../index";
 import {observer} from "mobx-react-lite";
@@ -6,23 +6,78 @@ import '../styles/chats.css'
 import {useEffect} from "react";
 import Dialog from "./Dialog";
 import Message from "./Message";
+import {io} from 'socket.io-client';
+import uuid from 'react-uuid';
 
+const SOCKET_URL = 'ws://localhost:8900'
 
 const Chat = () => {
     const {store} = useContext(Context);
-    const [data, setData] = useState();
+    const [newMessageText, setNewMessageText] = useState('');
+    const scrollRef = useRef();
+    const socket = useRef()
+
     useEffect(() => {
-        async function fetchData() {
-            const response = await store.getDialogs();
-            setData(store.dialogs);
-            console.log(store.dialogs);
+        socket.current = io(SOCKET_URL);
+        socket.current.on('getMessage', data => {
+            store.setArrivalMessage({
+                id: uuid(),
+                sender_id: data.senderId,
+                dialog_id: store.currentDialog?.id,
+                text: data.text,
+                is_read: data.isRead,
+                created_at: Date.now(),
+            })
+            store.currentDialog.last_message = data.text;
+        })
+
+    }, [])
+
+    useEffect(() => {
+        store.arrivalMessage && store.arrivalMessage.sender_id === store.currentDialog?.receiver_id &&
+            store.setMessages([...store.messages, store.arrivalMessage])
+    }, [store.arrivalMessage, store.currentDialog]);
+
+
+    useEffect(() => {
+        socket.current.emit('addUser', store.user.id);
+    }, [store.user]);
+
+    useEffect(() => {
+        async function fetchDialogs() {
+            await store.getDialogs(store.user.id);
         }
-        fetchData();
+        fetchDialogs();
     }, []);
+
+    useEffect(() => {
+        async function fetchMessages() {
+            await store.getMessages();
+        }
+        fetchMessages();
+    }, [store.currentDialog]);
+
     const handleClickLogout = (e) => {
         e.preventDefault();
-        store.logout()
+        store.logout();
     }
+
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        store.sendMessage(newMessageText);
+        socket.current.emit('sendMessage', {
+            senderId: store.user.id,
+            receiverId: store.currentDialog.receiver_id,
+            text: newMessageText,
+            isRead: true,
+        })
+        setNewMessageText('');
+    }
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({behavior: "smooth"})
+    }, [store.messages])
+
     return (
         <Container className='wrapper'>
             <Navbar bg="primary" variant="dark" className='navbar-size'>
@@ -35,7 +90,7 @@ const Chat = () => {
                             className="d-inline-block brand"
                             alt="React Bootstrap logo"
                         />{' '}
-                        Валентина Губина
+                        {store.user.first_name + ' ' + store.user.last_name}
                     </Navbar.Brand>
                     <Button variant="danger" size='lg'
                             onClick={handleClickLogout}
@@ -47,39 +102,53 @@ const Chat = () => {
             <Container fluid className='chat-wrapper'>
                 <Container className='dialogs-wrapper'>
                     <input placeholder='Найти диалог' className='dialog-input'></input>
-                    <Dialog/>
-                    <Dialog/>
-                    <Dialog/>
-                    <Dialog/>
+                    {store.dialogs.map((dialog) => (
+                        <div key={dialog.id} onClick={() => store.setCurrentDialog(dialog)}>
+                            <Dialog
+                                key={dialog.id}
+                                receiver_name={dialog.receiver_name}
+                                last_message={dialog.last_message}
+                                missed_messages={dialog.missed_messages}
+                            />
+                        </div>
+                    ))}
                 </Container>
                 <Container className='messages-wrapper'>
-                    <Container className='message-list'>
-                        <Message/>
-                        <Message own={true}/>
-                        <Message own={true}/>
-                        <Message/>
-                        <Message/>
-                        <Message own={true}/>
-                        <Message own={true}/>
-                        <Message/>
-                        <Message/>
-                        <Message own={true}/>
-                        <Message own={true}/>
-                        <Message/>
-                        <Message/>
-                        <Message own={true}/>
-                        <Message own={true}/>
-                        <Message/>
-                    </Container>
-                    <Container className='navbar-fixed-bottom chat-message-form'>
-                        <Form.Control
-                            type="text"
-                            placeholder='Введите сообщение'
-                            id="message-text"
-                            className='message-input'
-                        />
-                        <Button variant='primary' className='send-message-button'>Отправить</Button>
-                    </Container>
+                    {
+                        store.currentDialog ?
+                            <>
+                                <Container className='message-list'>
+                                    {store.messages?.map((message) => (
+                                        <div ref={scrollRef}>
+                                            <Message
+                                                key={message.id}
+                                                user_message={message.sender_id === store.user.id}
+                                                text={message.text}
+                                                created_at={message.created_at}
+                                            />
+                                        </div>
+                                    ))}
+                                </Container>
+                                <Container className='navbar-fixed-bottom chat-message-form'>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder='Введите сообщение'
+                                        id="message-text"
+                                        className='message-input'
+                                        onChange={(e) => setNewMessageText(e.target.value)}
+                                        value={newMessageText}
+                                    />
+                                    <Button
+                                        variant='primary'
+                                        className='send-message-button'
+                                        onClick={handleSendMessage}
+                                    >
+                                        Отправить
+                                    </Button>
+                                </Container>
+                            </> :
+                            <span className='noDialog'>Откройте диалог для начала общения</span>
+                    }
                 </Container>
             </Container>
         </Container>

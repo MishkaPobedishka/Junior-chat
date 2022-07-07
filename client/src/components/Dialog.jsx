@@ -2,7 +2,7 @@ import React from 'react';
 import {Badge, Container} from "react-bootstrap";
 import '../styles/dialog.css'
 
-const Dialog = () => {
+const Dialog = ({receiver_name, last_message, missed_messages}) => {
     return (
         <div className='wrapper'>
             <Container className='dialog-main-wrapper'>
@@ -12,10 +12,12 @@ const Dialog = () => {
                     alt=''
                 />
                 <Container className='dialog-info-wrapper'>
-                    <span className='dialog-username'>Михаил Карук</span>
-                    <p className='dialog-last-message'>Привет, привет</p>
+                    <span className='dialog-username'>{receiver_name}</span>
+                    <p className='dialog-last-message'>{last_message}</p>
                 </Container>
-                <Badge className='last-message-count' bg="primary">100</Badge>
+                {missed_messages !== 0 &&
+                    <Badge className='last-message-count' bg="primary">{missed_messages}</Badge>
+                }
             </Container>
         </div>
     );

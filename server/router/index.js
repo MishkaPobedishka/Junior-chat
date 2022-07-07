@@ -17,6 +17,9 @@ router.post('/login',
     authController.login);
 router.post('/logout', authController.logout);
 router.get('/refresh', authController.refresh);
-router.post('/dialogs', authMiddleware, chatController.getDialogs);
+router.post('/dialogs', authMiddleware, chatController.addDialog);
+router.get('/dialogs/:userId', authMiddleware, chatController.getDialogs);
+router.post('/messages', authMiddleware, chatController.sendMessage);
+router.get('/messages/:dialogId', authMiddleware, chatController.getMessages);
 
 module.exports = router
