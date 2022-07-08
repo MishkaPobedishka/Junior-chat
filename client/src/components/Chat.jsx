@@ -111,6 +111,7 @@ const Chat = () => {
             <Container fluid className='chat-wrapper'>
                 <Container className='dialogs-wrapper'>
                     <input placeholder='Найти диалог' className='dialog-input'></input>
+                    <div className='dialog-list'>
                     {store.dialogs.map((dialog) => (
                         <div key={dialog.id} onClick={() => {store.setCurrentDialog(dialog)}}>
                             <Dialog
@@ -121,6 +122,7 @@ const Chat = () => {
                             />
                         </div>
                     ))}
+                    </div>
                 </Container>
                 <Container className='messages-wrapper'>
                     {

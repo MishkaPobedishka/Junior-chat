@@ -25,9 +25,15 @@
 
 .dialogs-wrapper {
     margin: 0!important;
+    height: 100%;
     padding: 10px;
     justify-content: start;
     flex: 4;
+}
+
+.dialog-list {
+    height: 109%;
+    overflow-y: scroll;
 }
 
 .messages-wrapper {
