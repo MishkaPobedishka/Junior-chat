@@ -33,6 +33,16 @@ class ChatController {
             next(e);
         }
     }
+
+    async setMessagesReaded(req, res, next) {
+        try {
+            const {messages} = req.body;
+            const updated = await chatService.setMessagesReaded(messages);
+            return res.json(updated);
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 module.exports = new ChatController();

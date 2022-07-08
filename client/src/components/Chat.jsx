@@ -7,9 +7,7 @@ import {useEffect} from "react";
 import Dialog from "./Dialog";
 import Message from "./Message";
 import {io} from 'socket.io-client';
-import uuid from 'react-uuid';
-
-const SOCKET_URL = 'ws://localhost:8900'
+import {SOCKET_URL} from "../utils/const";
 
 const Chat = () => {
     const {store} = useContext(Context);
@@ -21,7 +19,7 @@ const Chat = () => {
         socket.current = io(SOCKET_URL);
         socket.current.on('getMessage', data => {
             store.setArrivalMessage({
-                id: uuid(),
+                id: data.id,
                 sender_id: data.senderId,
                 dialog_id: data.dialogId,
                 text: data.text,
@@ -33,13 +31,15 @@ const Chat = () => {
     }, [])
 
     useEffect(() => {
-        console.log('message income');
         store.arrivalMessage && store.arrivalMessage.sender_id === store.currentDialog?.receiver_id &&
             store.setMessages([...store.messages, store.arrivalMessage])
     }, [store.arrivalMessage, store.currentDialog]);
 
-    useEffect(() => {
-        store.setNewDialogArray();
+    useEffect(()=> {
+        async function setDialogNewData() {
+            await store.setNewDialogArray();
+        }
+        setDialogNewData();
     }, [store.arrivalMessage]);
 
 
@@ -57,6 +57,7 @@ const Chat = () => {
     useEffect(() => {
         async function fetchMessages() {
             await store.getMessages();
+            await store.setMessagesReaded(false);
         }
         fetchMessages();
     }, [store.currentDialog]);
@@ -66,11 +67,12 @@ const Chat = () => {
         store.logout();
     }
 
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         if (newMessageText) {
-            store.sendMessage(newMessageText);
+            await store.sendMessage(newMessageText);
             socket.current.emit('sendMessage', {
+                id: store.getSendedMessageId(),
                 senderId: store.user.id,
                 dialogId: store.currentDialog.id,
                 receiverId: store.currentDialog.receiver_id,
@@ -82,7 +84,7 @@ const Chat = () => {
     }
 
     useEffect(() => {
-        scrollRef.current?.scrollIntoView({behavior: "smooth"})
+        scrollRef.current?.scrollIntoView()
     }, [store.messages])
 
     return (
@@ -110,7 +112,7 @@ const Chat = () => {
                 <Container className='dialogs-wrapper'>
                     <input placeholder='Найти диалог' className='dialog-input'></input>
                     {store.dialogs.map((dialog) => (
-                        <div key={dialog.id} onClick={() => store.setCurrentDialog(dialog)}>
+                        <div key={dialog.id} onClick={() => {store.setCurrentDialog(dialog)}}>
                             <Dialog
                                 key={dialog.id}
                                 receiver_name={dialog.receiver_name}
@@ -126,7 +128,7 @@ const Chat = () => {
                             <>
                                 <Container className='message-list'>
                                     {store.messages?.map((message) => (
-                                        <div ref={scrollRef}>
+                                        <div key={message.id} ref={scrollRef}>
                                             <Message
                                                 key={message.id}
                                                 user_message={message.sender_id === store.user.id}

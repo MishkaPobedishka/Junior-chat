@@ -21,5 +21,6 @@ router.post('/dialogs', authMiddleware, chatController.addDialog);
 router.get('/dialogs/:userId', authMiddleware, chatController.getDialogs);
 router.post('/messages', authMiddleware, chatController.sendMessage);
 router.get('/messages/:dialogId', authMiddleware, chatController.getMessages);
+router.patch('/messages/', chatController.setMessagesReaded);
 
 module.exports = router

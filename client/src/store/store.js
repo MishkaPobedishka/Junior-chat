@@ -8,7 +8,6 @@ export default class Store{
     user = {};
     dialogs = [];
     messages = [];
-    lastMessage = '';
     arrivalMessage = null;
     currentDialog = null;
     isAuth = false;
@@ -45,18 +44,6 @@ export default class Store{
         this.arrivalMessage = arrivalMessage;
     }
 
-    setNewDialogArray() {
-        this.dialogs = this.dialogs.map(dialog => {
-            if (dialog.id === this.arrivalMessage.dialog_id) {
-                dialog.last_message = this.arrivalMessage.text;
-                if (!this.arrivalMessage.isRead && !(this.currentDialog?.id === dialog.id))
-                    dialog.missed_messages++;
-                return dialog;
-            }
-            return dialog;
-        })
-    }
-
     async login(email, password) {
         try {
             const response = await AuthService.login(email, password);
@@ -81,7 +68,7 @@ export default class Store{
 
     async logout() {
         try {
-            const response = await AuthService.logout();
+            await AuthService.logout();
             localStorage.removeItem('token');
             this.setAuth(false);
             this.setUser({})
@@ -126,6 +113,7 @@ export default class Store{
 
     async sendMessage(newMessageText) {
         try {
+            this.setLastMessage(newMessageText);
             const response = await ChatService.sendMessage(this.user.id, this.currentDialog.id, newMessageText)
             this.setMessages([...this.messages, response.data])
         } catch (e) {
@@ -133,7 +121,59 @@ export default class Store{
         }
     }
 
-    openDialog(dialogId, missed_messages) {
+    setLastMessage(newMessageText) {
+        this.dialogs = this.dialogs.map(dialog => {
+            if(this.currentDialog.id === dialog.id)
+                dialog.last_message = newMessageText;
+            return dialog;
+        })
+    }
 
+    getSendedMessageId() {
+        const lastMessage = this.messages.slice(-1);
+        return lastMessage[0].id;
+    }
+
+    async setNewDialogArray() {
+        this.dialogs = await Promise.all(this.dialogs.map(async dialog => {
+            if (dialog.id === this.arrivalMessage.dialog_id) {
+                dialog.last_message = this.arrivalMessage.text;
+                if (!this.arrivalMessage.isRead) {
+                    if (!(this.currentDialog?.id === dialog.id))
+                        dialog.missed_messages++;
+                    else
+                        await this.setMessagesReaded(true);
+                }
+                return dialog;
+            }
+            return dialog;
+        }))
+    }
+
+    async setMessagesReaded(oneMessage) {
+        try {
+            if(this.currentDialog) {
+                const messages = oneMessage ?
+                    this.arrivalMessage.id :
+                    this.getUnreadedMessages();
+                await ChatService.setMessageReaded(messages);
+                this.dialogs = this.dialogs.map(dialog => {
+                    if (this.currentDialog?.id === dialog.id)
+                        dialog.missed_messages = 0;
+                    return dialog;
+                })
+            }
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    getUnreadedMessages() {
+        const unreadedMessages = [];
+        this.messages.map(message => {
+            if (message.sender_id === this.currentDialog?.receiver_id && !message.is_read)
+                unreadedMessages.push(message.id);
+        })
+        return unreadedMessages;
     }
 }

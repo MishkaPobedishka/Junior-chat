@@ -27,9 +27,10 @@ io.on('connection', (socket) => {
         io.emit('getUsers', users);
     })
 
-    socket.on('sendMessage', ({senderId, dialogId, receiverId, text, isRead}) => {
+    socket.on('sendMessage', ({id, senderId, dialogId, receiverId, text, isRead}) => {
         const user = findUser(receiverId);
         io.to(user?.socketId).emit('getMessage', {
+            id,
             senderId,
             dialogId,
             text,

@@ -48,6 +48,6 @@
 .last-message-count {
     margin-left: 5px;
     height: 50%;
-    border-radius: 20px;
-    font-size: 16px;
+    border-radius: 20px!important;
+    font-size: 16px!important;
 }

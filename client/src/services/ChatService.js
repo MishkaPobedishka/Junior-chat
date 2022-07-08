@@ -12,4 +12,8 @@ export default class ChatService {
     static async sendMessage(sender_id, dialog_id, newMessageText) {
         return api.post('/messages', {sender_id, dialog_id, newMessageText});
     }
+
+    static async setMessageReaded(messages) {
+        return api.patch('/messages', {messages})
+    }
 }

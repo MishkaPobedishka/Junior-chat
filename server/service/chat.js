@@ -8,6 +8,7 @@ const ApiError = require('../exceptions/api-error')
 const Dialog = require("../db/models/dialog");
 const Message = require("../db/models/message");
 const DialogDTO = require("../dtos/dialog");
+const UpdateResultDTO = require("../dtos/updateResult");
 
 class ChatService {
     async getDialogs(userId) {
@@ -97,7 +98,6 @@ class ChatService {
         const created_id = uuid.v4();
         const is_read = false;
         const created_at = new Date(Date.now()).toISOString();
-        console.log();
 
         return await Message.create({
             id: created_id,
@@ -107,6 +107,27 @@ class ChatService {
             is_read: is_read,
             created_at: created_at
         })
+    }
+
+    async setMessagesReaded(messages) {
+        if(Array.isArray(messages)) {
+            let result = [];
+            messages.map(async message => {
+                await Message.update({is_read: true}, {
+                    where: {
+                        id: message
+                    }
+                })
+                result.push(new UpdateResultDTO(message, 'Message', 'isRead', 'true'))
+            })
+            return result;
+        }
+        await Message.update({is_read: true}, {
+            where: {
+                id: messages
+            }
+        });
+        return new UpdateResultDTO(messages, 'Message', 'isRead', 'true');
     }
 }
 
