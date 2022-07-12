@@ -11,6 +11,55 @@ const DialogDTO = require("../dtos/dialog");
 const UpdateResultDTO = require("../dtos/updateResult");
 
 class ChatService {
+    async getNewDialogsUsers(userId) {
+        const existedDialogs = await Dialog.findAll({
+            attributes: ['users'],
+            where: {
+                users: {
+                    [Op.contains] : [userId]
+                }
+            }
+        })
+        const existedUsersDialogs = [];
+        existedDialogs.map(dialog => {
+            dialog.users.map(user => {
+                if (user !== userId)
+                    existedUsersDialogs.push(user);
+            })
+        })
+        const users = await User.findAll({
+            where: {
+                [Op.and]: [
+                    {
+                        id: {
+                            [Op.notIn]: existedUsersDialogs
+                        }
+                    },
+                    {
+                        id: {
+                            [Op.ne]: userId
+                        }
+                    }
+                ]
+            }
+        })
+        const usersDTOs = users.map(user => {
+            return new UserDTO(user);
+        })
+        return usersDTOs;
+    }
+
+    async addNewDialog(userId, receiverId) {
+        const created_id = uuid.v4();
+        const created_at = new Date(Date.now()).toISOString();
+
+        return await Dialog.create({
+            id: created_id,
+            users: [userId, receiverId],
+            created_at: created_at
+        })
+    }
+
     async getDialogs(userId) {
         const dialogs = await Dialog.findAll({
             where : {

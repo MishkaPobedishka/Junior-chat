@@ -16,4 +16,12 @@ export default class ChatService {
     static async setMessageReaded(messages) {
         return api.patch('/messages', {messages})
     }
+
+    static async getNewDialogUsers(userId) {
+        return api.get('/dialogs/new/' + userId);
+    }
+
+    static async addNewDialog(userId, receiverId) {
+        return api.post('/dialogs/new', {userId, receiverId})
+    }
 }

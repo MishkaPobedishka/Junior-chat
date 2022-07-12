@@ -1,0 +1,35 @@
+.wrapper {
+    margin: 0!important;
+    padding: 0!important;
+}
+
+.user-main-wrapper {
+    margin-right: 0;
+    padding: 0;
+    margin-left: 10px;
+    margin-top: 10px;
+    width: 90%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    cursor: pointer;
+}
+
+.user-main-wrapper:hover {
+    background: rgb(235, 235, 235);
+}
+
+.user-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.username {
+    padding-left: 5px;
+    font-weight: bold;
+}
+
+.selected {
+    background: rgb(0, 235, 235);
+}

@@ -38,6 +38,21 @@ io.on('connection', (socket) => {
         })
     })
 
+    socket.on('addDialog', ({id, userId, receiverId, receiverName, lastMessage, missedMessages, createdAt}) => {
+        const user = findUser(receiverId);
+        console.log(receiverId);
+        io.to(user?.socketId).emit('getDialog', {
+            id,
+            userId,
+            receiverId,
+            receiverName,
+            lastMessage,
+            missedMessages,
+            createdAt
+        })
+        console.log('done')
+    })
+
     socket.on('disconnect', () => {
         removeUser(socket.id);
         io.emit('getUsers', users);

@@ -6,6 +6,8 @@ import ChatService from "../services/ChatService";
 
 export default class Store{
     user = {};
+    addDialogUsers = [];
+    newDialogUser = null;
     dialogs = [];
     messages = [];
     arrivalMessage = null;
@@ -22,6 +24,14 @@ export default class Store{
 
     setUser(user) {
         this.user = user;
+    }
+
+    setAddDialogUsers(users) {
+        this.addDialogUsers = users;
+    }
+
+    setNewDialogUser(user) {
+        this.newDialogUser = user;
     }
 
     setLoading(bool) {
@@ -134,6 +144,19 @@ export default class Store{
         return lastMessage[0].id;
     }
 
+    getAddedDialog() {
+        const dialog = this.dialogs[this.dialogs.length-1];
+        return {
+            id: dialog.id,
+            user_id: dialog.user_id,
+            receiver_id: dialog.receiver_id,
+            receiver_name: dialog.receiver_name,
+            last_message: dialog.last_message,
+            missed_messages: dialog.missed_messages,
+            created_at: dialog.created_at
+        }
+    }
+
     async setNewDialogArray() {
         this.dialogs = await Promise.all(this.dialogs.map(async dialog => {
             if (dialog.id === this.arrivalMessage.dialog_id) {
@@ -175,5 +198,37 @@ export default class Store{
                 unreadedMessages.push(message.id);
         })
         return unreadedMessages;
+    }
+
+    async getNewDialogUsers() {
+        try {
+            const response = await ChatService.getNewDialogUsers(this.user.id);
+            this.setAddDialogUsers(response.data);
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async addNewDialog() {
+        try {
+            const response = await ChatService.addNewDialog(this.user.id, this.newDialogUser.id);
+            let user_id, receiver_id;
+            response.data.users.map(user => {
+                if (this.user.id === user)
+                    user_id = user
+                receiver_id = user
+            })
+            this.setDialogs([...this.dialogs, {
+                id: response.data.id,
+                user_id: user_id,
+                receiver_id: receiver_id,
+                receiver_name: this.newDialogUser.first_name + ' ' + this.newDialogUser.last_name,
+                last_message: '',
+                missed_messages: 0,
+                created_at: response.data.created_at
+            }]);
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
     }
 }

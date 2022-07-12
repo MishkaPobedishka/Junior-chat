@@ -2,8 +2,23 @@ const chatService = require("../service/chat");
 
 
 class ChatController {
-    async addDialog(req, res, next) {
+    async getNewDialogUsers(req, res, next) {
+        try {
+            const users = await chatService.getNewDialogsUsers(req.params.userId);
+            return res.json(users);
+        } catch (e) {
+            next(e);
+        }
+    }
 
+    async addNewDialog(req, res, next) {
+        try {
+            const {userId, receiverId} = req.body;
+            const dialog = await chatService.addNewDialog(userId, receiverId);
+            return res.json(dialog);
+        } catch (e) {
+            next(e);
+        }
     }
 
     async getDialogs(req, res, next) {

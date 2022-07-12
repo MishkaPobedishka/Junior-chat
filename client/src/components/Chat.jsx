@@ -1,5 +1,5 @@
 import React, {useContext, useRef, useState} from 'react';
-import {Button, Container, Form, Navbar} from "react-bootstrap";
+import {Button, Container, Form, Modal, Navbar} from "react-bootstrap";
 import {Context} from "../index";
 import {observer} from "mobx-react-lite";
 import '../styles/chats.css'
@@ -8,10 +8,12 @@ import Dialog from "./Dialog";
 import Message from "./Message";
 import {io} from 'socket.io-client';
 import {SOCKET_URL} from "../utils/const";
+import User from "./User";
 
 const Chat = () => {
     const {store} = useContext(Context);
     const [newMessageText, setNewMessageText] = useState('');
+    const [modalShow, setModalShow] = useState(false);
     const scrollRef = useRef();
     const socket = useRef()
 
@@ -27,7 +29,17 @@ const Chat = () => {
                 created_at: Date.now(),
             })
         })
-
+        socket.current.on('getDialog', data => {
+            store.setDialogs([...store.dialogs, {
+                id: data.id,
+                user_id: data.receiverId,
+                receiver_id: data.userId,
+                receiver_name: data.receiverName,
+                last_message: data.lastMessage,
+                missed_messages: data.missedMessages,
+                created_at: data.createdAt
+            }])
+        })
     }, [])
 
     useEffect(() => {
@@ -83,9 +95,62 @@ const Chat = () => {
         }
     }
 
+    const handleGetNewDialogUsers = async (e) => {
+        e.preventDefault();
+        await store.getNewDialogUsers();
+        setModalShow(true);
+    }
+
+    const handleAddNewDialog = async (user) => {
+        store.setNewDialogUser(user);
+        setModalShow(false);
+        await store.addNewDialog();
+        const sendedDialog = store.getAddedDialog();
+        console.log(sendedDialog);
+        socket.current.emit('addDialog', {
+            id: sendedDialog.id,
+            userId: sendedDialog.user_id,
+            receiverId: sendedDialog.receiver_id,
+            receiverName: store.user.first_name + ' ' + store.user.last_name,
+            lastMessage: sendedDialog.last_message,
+            missedMessages: sendedDialog.missed_messages,
+            createdAt: sendedDialog.created_at
+        })
+    }
+
     useEffect(() => {
         scrollRef.current?.scrollIntoView()
     }, [store.messages])
+
+    function MyVerticallyCenteredModal(props) {
+        return (
+            <Modal
+                {...props}
+                size="md"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title id="contained-modal-title-vcenter">
+                        Выберите пользователя
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Container className='users'>
+                        {store.addDialogUsers.map((user) => (
+                            <div key = {user.id} onClick={() => handleAddNewDialog(user)}>
+                                <User
+                                    key = {user.id}
+                                    first_name = {user.first_name}
+                                    last_name = {user.last_name}
+                                />
+                            </div>
+                        ))}
+                    </Container>
+                </Modal.Body>
+            </Modal>
+        );
+    }
 
     return (
         <Container className='wrapper'>
@@ -123,6 +188,11 @@ const Chat = () => {
                         </div>
                     ))}
                     </div>
+                    <Button variant='primary' className='add-dialog' onClick={handleGetNewDialogUsers}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2.5 -2.5 24 24" width="30" fill="currentColor">
+                            <path d="M12.238 5.472L3.2 14.51l-.591 2.016 1.975-.571 9.068-9.068-1.414-1.415zM13.78 3.93l1.414 1.414 1.318-1.318a.5.5 0 0 0 0-.707l-.708-.707a.5.5 0 0 0-.707 0L13.781 3.93zm3.439-2.732l.707.707a2.5 2.5 0 0 1 0 3.535L5.634 17.733l-4.22 1.22a1 1 0 0 1-1.237-1.241l1.248-4.255 12.26-12.26a2.5 2.5 0 0 1 3.535 0z"></path>
+                        </svg>
+                    </Button>{' '}
                 </Container>
                 <Container className='messages-wrapper'>
                     {
@@ -162,6 +232,10 @@ const Chat = () => {
                     }
                 </Container>
             </Container>
+            <MyVerticallyCenteredModal
+                show={modalShow}
+                onHide={() => setModalShow(false)}
+            />
         </Container>
     );
 };
