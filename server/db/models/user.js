@@ -22,7 +22,15 @@ const User = sequelize.define("user" , {
   password_hash: {
     type: DataTypes.TEXT,
     allowNull: false
-  }
+  },
+  is_admin: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false
+  },
+  is_blocked: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false
+  },
 }, {
   timestamps: false
 });

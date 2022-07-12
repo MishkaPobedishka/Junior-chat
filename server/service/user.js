@@ -16,7 +16,15 @@ class UserService {
         }
         const hash = await bcrypt.hash(password, 3);
         const createdId = uuid.v4();
-        const user = await User.create({id: createdId, first_name: first_name, last_name: last_name, email: email, password_hash: hash});
+        const user = await User.create({
+            id: createdId,
+            first_name: first_name,
+            last_name: last_name,
+            email: email,
+            password_hash: hash,
+            is_admin: false,
+            is_blocked: false
+        });
 
         const userDTO = new UserDTO(user);
         const tokens = tokenService.generateTokens({...userDTO});
@@ -77,11 +85,6 @@ class UserService {
             ...tokens,
             user: userDTO
         }
-    }
-
-    async getUsers() {
-        const users = User.findAll();
-        return users;
     }
 }
 

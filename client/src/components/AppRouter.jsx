@@ -5,6 +5,8 @@ import {useContext, useEffect} from "react";
 import {observer} from "mobx-react-lite";
 import {privateRoutes, publicRoutes} from "../routes";
 import {CHAT_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE} from "../utils/const";
+import {Spinner} from "react-bootstrap";
+import '../styles/loader.css'
 
 const AppRouter = () => {
     const {store} = useContext(Context)
@@ -17,7 +19,9 @@ const AppRouter = () => {
 
     if (store.isLoading) {
         return (
-            <div>Загрузка...</div>
+            <div className='loader-wrapper'>
+                <Spinner className='loader' animation="border" variant="primary" />
+            </div>
         )
     }
 

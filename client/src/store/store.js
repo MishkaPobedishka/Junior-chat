@@ -14,12 +14,22 @@ export default class Store{
     currentDialog = null;
     isAuth = false;
     isLoading = false;
+    isAdmin = false;
+    isBlocked = false;
     constructor() {
         makeAutoObservable(this);
     }
 
     setAuth(bool) {
         this.isAuth = bool;
+    }
+
+    setAdmin(bool) {
+        this.isAdmin = bool;
+    }
+
+    setBlocked(bool) {
+        this.isBlocked = bool;
     }
 
     setUser(user) {
@@ -55,6 +65,7 @@ export default class Store{
     }
 
     async login(email, password) {
+        this.setLoading(true);
         try {
             const response = await AuthService.login(email, password);
             localStorage.setItem('token', response.data.accessToken);
@@ -62,10 +73,13 @@ export default class Store{
             this.setUser(response.data.user)
         } catch (e) {
             console.log(e.response?.data?.message);
+        } finally {
+            this.setLoading(false);
         }
     }
 
     async registration(first_name, last_name,email, password) {
+        this.setLoading(true);
         try {
             const response = await AuthService.registration(first_name, last_name,email, password);
             localStorage.setItem('token', response.data.accessToken);
@@ -73,6 +87,8 @@ export default class Store{
             this.setUser(response.data.user)
         } catch (e) {
             console.log(e.response?.data?.message);
+        } finally {
+            this.setLoading(false);
         }
     }
 
@@ -158,7 +174,7 @@ export default class Store{
     }
 
     async setNewDialogArray() {
-        this.dialogs = await Promise.all(this.dialogs.map(async dialog => {
+        this.dialogs = await Promise.all(this.dialogs?.map(async dialog => {
             if (dialog.id === this.arrivalMessage.dialog_id) {
                 dialog.last_message = this.arrivalMessage.text;
                 if (!this.arrivalMessage.isRead) {

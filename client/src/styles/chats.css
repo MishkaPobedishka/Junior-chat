@@ -96,3 +96,25 @@
 .noDialog {
 
 }
+
+.buttons {
+    max-width: 340px;
+    margin: 0;
+}
+
+.admin-button {
+    margin-left: 15px;
+}
+
+.exit-button {
+    margin-left: 10px;
+}
+
+.admin-link {
+    color: white;
+    text-decoration: none;
+}
+
+.admin-link:hover {
+    color: white;
+}

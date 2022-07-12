@@ -7,8 +7,9 @@ import {useEffect} from "react";
 import Dialog from "./Dialog";
 import Message from "./Message";
 import {io} from 'socket.io-client';
-import {SOCKET_URL} from "../utils/const";
+import {ADMIN_ROUTE, SOCKET_URL} from "../utils/const";
 import User from "./User";
+import {Link} from "react-router-dom";
 
 const Chat = () => {
     const {store} = useContext(Context);
@@ -62,6 +63,8 @@ const Chat = () => {
     useEffect(() => {
         async function fetchDialogs() {
             await store.getDialogs(store.user.id);
+            store.setAdmin(store.user.is_admin);
+            store.setBlocked(store.user.is_blocked);
         }
         fetchDialogs();
     }, []);
@@ -106,7 +109,6 @@ const Chat = () => {
         setModalShow(false);
         await store.addNewDialog();
         const sendedDialog = store.getAddedDialog();
-        console.log(sendedDialog);
         socket.current.emit('addDialog', {
             id: sendedDialog.id,
             userId: sendedDialog.user_id,
@@ -166,11 +168,18 @@ const Chat = () => {
                         />{' '}
                         {store.user.first_name + ' ' + store.user.last_name}
                     </Navbar.Brand>
-                    <Button variant="danger" size='lg'
+                    <Container className='buttons'>
+                        {store.isAdmin &&
+                            <Button variant="success" size='lg' className='admin-button'>
+                                <Link className='admin-link' to={ADMIN_ROUTE}>Войти в админку</Link >
+                            </Button>
+                        }
+                        <Button variant="danger" size='lg' className='exit-button'
                             onClick={handleClickLogout}
-                    >
-                        Выйти
-                    </Button>
+                        >
+                            Выйти
+                        </Button>
+                    </Container>
                 </Container>
             </Navbar>
             <Container fluid className='chat-wrapper'>
