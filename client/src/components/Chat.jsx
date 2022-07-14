@@ -41,10 +41,12 @@ const Chat = () => {
     useEffect(() => {
         async function fetchDialogs() {
             await store.getDialogs(store.user.id);
+            console.log(store.dialogs);
             store.setAdmin(store.user.is_admin);
             store.setBlocked(store.user.is_blocked);
             if(store.user.is_blocked)
                 await store.getBlockInfo();
+            store.requestUsers();
         }
         fetchDialogs();
     }, []);
@@ -172,6 +174,7 @@ const Chat = () => {
                                         receiver_name={dialog.receiver_name}
                                         last_message={dialog.last_message}
                                         missed_messages={dialog.missed_messages}
+                                        online={dialog.online}
                                     />
                                 </div>
                             ))}

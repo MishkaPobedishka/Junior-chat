@@ -111,10 +111,31 @@ export default class Store{
             this.user.is_blocked = data.blockStatus
             this.setBlockInfo(data);
         })
+        this.socket.on('getUsers', data => {
+            this.setOnline(data);
+        })
+    }
+
+    requestUsers() {
+        console.log('requestUsers')
+        this.socket.emit('requestUsers', {});
+    }
+
+    setOnline(users) {
+        console.log(users)
+        this.setDialogs(
+            this.dialogs.map(dialog => {
+                dialog.online = false
+                const user = users.find(user => dialog.receiver_id === user.userId)
+                if (user)
+                    dialog.online = true;
+                return dialog;
+            })
+        )
     }
 
     addUserToSocket() {
-        this.socket.emit('addUser', this.user.id);
+        this.socket.emit('addUser', this.user.id, true);
     }
 
     sendMessageToSocket(newMessageText) {
@@ -174,6 +195,7 @@ export default class Store{
             localStorage.removeItem('token');
             this.setAuth(false);
             this.setUser({})
+            this.socket.disconnect();
         } catch (e) {
             console.log(e.response?.data?.message);
         }
@@ -363,7 +385,7 @@ export default class Store{
 
     async deleteUser(deletedUser) {
         try {
-            const response = await ChatService.deleteUser(deletedUser.id);
+            await ChatService.deleteUser(deletedUser.id);
             this.setAdminUsers(this.adminUsers.filter((user) => user.id !== deletedUser.id))
         } catch (e) {
             console.log(e.response?.data?.message);

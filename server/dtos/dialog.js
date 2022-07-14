@@ -6,6 +6,7 @@ module.exports = class DialogDTO {
     receiver_name;
     last_message = "";
     missed_messages;
+    online;
 
     constructor(model, userId, receiverId, receiver_name, last_message, missed_messages) {
         this.id = model.id;
@@ -17,5 +18,6 @@ module.exports = class DialogDTO {
             this.last_message = last_message.text;
         }
         this.missed_messages = missed_messages;
+        this.online = false;
     }
 }
