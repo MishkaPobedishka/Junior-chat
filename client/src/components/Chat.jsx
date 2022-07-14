@@ -82,6 +82,13 @@ const Chat = () => {
         store.logout();
     }
 
+    const handleKeyDown = async (e) => {
+        if (e.key === 'Enter') {
+            await handleSendMessage(e);
+            setNewMessageText('');
+        }
+    }
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (newMessageText) {
@@ -226,6 +233,7 @@ const Chat = () => {
                                         id="message-text"
                                         className='message-input'
                                         onChange={(e) => setNewMessageText(e.target.value)}
+                                        onKeyDown={handleKeyDown}
                                         value={newMessageText}
                                     />
                                     <Button

@@ -47,9 +47,11 @@
 }
 
 .messages-wrapper {
-    height: 100%;
+    height: 112%;
     margin: 0!important;
     padding: 0!important;
+    display: flex;
+    flex-direction: column;
     flex: 8;
 }
 
@@ -94,12 +96,15 @@
 }
 
 .noDialog {
-
+    margin: auto;
+    font-size: 20px;
 }
 
 .buttons {
     max-width: 340px;
     margin: 0;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .admin-button {
