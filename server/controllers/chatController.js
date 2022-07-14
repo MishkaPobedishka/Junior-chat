@@ -58,6 +58,43 @@ class ChatController {
             next(e);
         }
     }
+
+    async getAdminUsers(req, res, next) {
+        try {
+            const users = await chatService.getAdminUsers(req.params.userId);
+            return res.json(users);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async blockUser(req, res, next) {
+        try {
+            const {adminId, userId, blockStatus} = req.body;
+            const result = await chatService.blockUser(adminId, userId, blockStatus);
+            return res.json(result);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async getBlockInfo(req, res, next) {
+        try {
+            const blockInfo = await chatService.getBlockInfo(req.params.adminId);
+            return res.json(blockInfo);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async deleteUser(req, res, next) {
+        try {
+            const result = await chatService.deleteUser(req.params.userId);
+            return res.json(result);
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 module.exports = new ChatController();

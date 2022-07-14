@@ -23,5 +23,9 @@ router.get('/messages/:dialogId', authMiddleware, chatController.getMessages);
 router.patch('/messages/', chatController.setMessagesReaded);
 router.get('/dialogs/new/:userId', authMiddleware, chatController.getNewDialogUsers);
 router.post('/dialogs/new', authMiddleware, chatController.addNewDialog);
+router.get('/admin/:userId', authMiddleware, chatController.getAdminUsers);
+router.patch('/admin', authMiddleware, chatController.blockUser);
+router.get('/blocked/:adminId', authMiddleware, chatController.getBlockInfo);
+router.delete('/admin/:userId', authMiddleware, chatController.deleteUser);
 
 module.exports = router

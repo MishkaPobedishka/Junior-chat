@@ -15,4 +15,30 @@
     height: calc(100vh - 200px);
     width: 100vw;
     display: flex;
+    max-width: 99vw;
+    padding-left: 100px!important;
+}
+
+.card {
+    margin-top: 10px;
+    margin-bottom: 0px;
+    max-width: 400px;
+}
+
+.card-wrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+.button-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: 300px;
+    margin-bottom: 5px;
+}
+
+.row-wrapper {
+    height: calc(100vh - 200px);
+    width: 100vw;
 }

@@ -16,31 +16,9 @@ const Chat = () => {
     const [newMessageText, setNewMessageText] = useState('');
     const [modalShow, setModalShow] = useState(false);
     const scrollRef = useRef();
-    const socket = useRef()
 
     useEffect(() => {
-        socket.current = io(SOCKET_URL);
-        socket.current.on('getMessage', data => {
-            store.setArrivalMessage({
-                id: data.id,
-                sender_id: data.senderId,
-                dialog_id: data.dialogId,
-                text: data.text,
-                is_read: data.isRead,
-                created_at: Date.now(),
-            })
-        })
-        socket.current.on('getDialog', data => {
-            store.setDialogs([...store.dialogs, {
-                id: data.id,
-                user_id: data.receiverId,
-                receiver_id: data.userId,
-                receiver_name: data.receiverName,
-                last_message: data.lastMessage,
-                missed_messages: data.missedMessages,
-                created_at: data.createdAt
-            }])
-        })
+        store.fetchSocketAnswers();
     }, [])
 
     useEffect(() => {
@@ -57,7 +35,7 @@ const Chat = () => {
 
 
     useEffect(() => {
-        socket.current.emit('addUser', store.user.id);
+        store.addUserToSocket();
     }, [store.user]);
 
     useEffect(() => {
@@ -65,6 +43,8 @@ const Chat = () => {
             await store.getDialogs(store.user.id);
             store.setAdmin(store.user.is_admin);
             store.setBlocked(store.user.is_blocked);
+            if(store.user.is_blocked)
+                await store.getBlockInfo();
         }
         fetchDialogs();
     }, []);
@@ -93,14 +73,7 @@ const Chat = () => {
         e.preventDefault();
         if (newMessageText) {
             await store.sendMessage(newMessageText);
-            socket.current.emit('sendMessage', {
-                id: store.getSendedMessageId(),
-                senderId: store.user.id,
-                dialogId: store.currentDialog.id,
-                receiverId: store.currentDialog.receiver_id,
-                text: newMessageText,
-                isRead: false,
-            })
+            store.sendMessageToSocket(newMessageText);
             setNewMessageText('');
         }
     }
@@ -116,15 +89,7 @@ const Chat = () => {
         setModalShow(false);
         await store.addNewDialog();
         const sendedDialog = store.getAddedDialog();
-        socket.current.emit('addDialog', {
-            id: sendedDialog.id,
-            userId: sendedDialog.user_id,
-            receiverId: sendedDialog.receiver_id,
-            receiverName: store.user.first_name + ' ' + store.user.last_name,
-            lastMessage: sendedDialog.last_message,
-            missedMessages: sendedDialog.missed_messages,
-            createdAt: sendedDialog.created_at
-        })
+        store.sendDialogToSocket(sendedDialog);
     }
 
     useEffect(() => {
@@ -189,70 +154,79 @@ const Chat = () => {
                     </Container>
                 </Container>
             </Navbar>
-            <Container fluid className='chat-wrapper'>
-                <Container className='dialogs-wrapper'>
-                    <input placeholder='Найти диалог' className='dialog-input'></input>
-                    <div className='dialog-list'>
-                    {store.dialogs.map((dialog) => (
-                        <div key={dialog.id} onClick={() => {store.setCurrentDialog(dialog)}}>
-                            <Dialog
-                                key={dialog.id}
-                                receiver_name={dialog.receiver_name}
-                                last_message={dialog.last_message}
-                                missed_messages={dialog.missed_messages}
-                            />
-                        </div>
-                    ))}
-                    </div>
-                    <Button variant='primary' className='add-dialog' onClick={handleGetNewDialogUsers}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2.5 -2.5 24 24" width="30" fill="currentColor">
-                            <path d="M12.238 5.472L3.2 14.51l-.591 2.016 1.975-.571 9.068-9.068-1.414-1.415zM13.78 3.93l1.414 1.414 1.318-1.318a.5.5 0 0 0 0-.707l-.708-.707a.5.5 0 0 0-.707 0L13.781 3.93zm3.439-2.732l.707.707a2.5 2.5 0 0 1 0 3.535L5.634 17.733l-4.22 1.22a1 1 0 0 1-1.237-1.241l1.248-4.255 12.26-12.26a2.5 2.5 0 0 1 3.535 0z"></path>
-                        </svg>
-                    </Button>{' '}
-                </Container>
-                <Container className='messages-wrapper'>
-                    {
-                        store.currentDialog ?
-                            <>
-                                <Container className='message-list'>
-                                    {store.messages?.map((message) => (
-                                        <div key={message.id} ref={scrollRef}>
-                                            <Message
-                                                key={message.id}
-                                                user_message={message.sender_id === store.user.id}
-                                                text={message.text}
-                                                created_at={message.created_at}
-                                            />
-                                        </div>
-                                    ))}
-                                </Container>
-                                <Container className='navbar-fixed-bottom chat-message-form'>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder='Введите сообщение'
-                                        id="message-text"
-                                        className='message-input'
-                                        onChange={(e) => setNewMessageText(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        value={newMessageText}
+            <Container fluid className={store.user.is_blocked ? 'chat-wrapper blocked-wrapper' : 'chat-wrapper'}>
+            {store.user.is_blocked ?
+                <>
+                    <span className='blocked'>Вы были заблокированы администратором {store.blockInfo?.userName}</span>
+                    <span className='blocked'>Для уточнения обратитесь на данную почту{store.blockInfo?.userEmail}</span>
+                </>
+                :
+                <>
+                    <Container className='dialogs-wrapper'>
+                        <input placeholder='Найти диалог' className='dialog-input'></input>
+                        <div className='dialog-list'>
+                            {store.dialogs.map((dialog) => (
+                                <div key={dialog.id} onClick={() => {store.setCurrentDialog(dialog)}}>
+                                    <Dialog
+                                        key={dialog.id}
+                                        receiver_name={dialog.receiver_name}
+                                        last_message={dialog.last_message}
+                                        missed_messages={dialog.missed_messages}
                                     />
-                                    <Button
-                                        variant='primary'
-                                        className='send-message-button'
-                                        onClick={handleSendMessage}
-                                    >
-                                        Отправить
-                                    </Button>
-                                </Container>
-                            </> :
-                            <span className='noDialog'>Откройте диалог для начала общения</span>
-                    }
-                </Container>
+                                </div>
+                            ))}
+                        </div>
+                        <Button variant='primary' className='add-dialog' onClick={handleGetNewDialogUsers}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2.5 -2.5 24 24" width="30" fill="currentColor">
+                                <path d="M12.238 5.472L3.2 14.51l-.591 2.016 1.975-.571 9.068-9.068-1.414-1.415zM13.78 3.93l1.414 1.414 1.318-1.318a.5.5 0 0 0 0-.707l-.708-.707a.5.5 0 0 0-.707 0L13.781 3.93zm3.439-2.732l.707.707a2.5 2.5 0 0 1 0 3.535L5.634 17.733l-4.22 1.22a1 1 0 0 1-1.237-1.241l1.248-4.255 12.26-12.26a2.5 2.5 0 0 1 3.535 0z"></path>
+                            </svg>
+                        </Button>{' '}
+                    </Container>
+                    <Container className='messages-wrapper'>
+                        {
+                            store.currentDialog ?
+                                <>
+                                    <Container className='message-list'>
+                                        {store.messages?.map((message) => (
+                                            <div key={message.id} ref={scrollRef}>
+                                                <Message
+                                                    key={message.id}
+                                                    user_message={message.sender_id === store.user.id}
+                                                    text={message.text}
+                                                    created_at={message.created_at}
+                                                />
+                                            </div>
+                                        ))}
+                                    </Container>
+                                    <Container className='navbar-fixed-bottom chat-message-form'>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder='Введите сообщение'
+                                            id="message-text"
+                                            className='message-input'
+                                            onChange={(e) => setNewMessageText(e.target.value)}
+                                            onKeyDown={handleKeyDown}
+                                            value={newMessageText}
+                                        />
+                                        <Button
+                                            variant='primary'
+                                            className='send-message-button'
+                                            onClick={handleSendMessage}
+                                        >
+                                            Отправить
+                                        </Button>
+                                    </Container>
+                                </> :
+                                <span className='noDialog'>Откройте диалог для начала общения</span>
+                        }
+                    </Container>
+                    <MyVerticallyCenteredModal
+                        show={modalShow}
+                        onHide={() => setModalShow(false)}
+                    />
+                </>
+            }
             </Container>
-            <MyVerticallyCenteredModal
-                show={modalShow}
-                onHide={() => setModalShow(false)}
-            />
         </Container>
     );
 };

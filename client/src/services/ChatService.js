@@ -24,4 +24,20 @@ export default class ChatService {
     static async addNewDialog(userId, receiverId) {
         return api.post('/dialogs/new', {userId, receiverId})
     }
+
+    static async getAdminUsers(userId) {
+        return api.get('/admin/' + userId);
+    }
+
+    static async blockUser(adminId, userId, blockStatus) {
+        return api.patch('/admin', {adminId, userId, blockStatus})
+    }
+
+    static async getBlockInfo(adminId) {
+        return api.get('/blocked/' + adminId);
+    }
+
+    static async deleteUser(userId) {
+        return api.delete('/admin/' + userId)
+    }
 }

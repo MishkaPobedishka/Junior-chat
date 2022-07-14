@@ -3,9 +3,14 @@ import AuthService from "../services/AuthService";
 import axios from "axios";
 import {API_URL} from "../http";
 import ChatService from "../services/ChatService";
+import {io} from 'socket.io-client';
+import {SOCKET_URL} from "../utils/const";
+
 
 export default class Store{
     user = {};
+    blockInfo = {};
+    adminUsers = [];
     addDialogUsers = [];
     newDialogUser = null;
     dialogs = [];
@@ -16,8 +21,15 @@ export default class Store{
     isLoading = false;
     isAdmin = false;
     isBlocked = false;
+
+    socket = null;
+
     constructor() {
         makeAutoObservable(this);
+    }
+
+    setSocket() {
+        this.socket = io(SOCKET_URL);
     }
 
     setAuth(bool) {
@@ -34,6 +46,10 @@ export default class Store{
 
     setUser(user) {
         this.user = user;
+    }
+
+    setAdminUsers(users) {
+        this.adminUsers = users;
     }
 
     setAddDialogUsers(users) {
@@ -62,6 +78,66 @@ export default class Store{
 
     setArrivalMessage(arrivalMessage) {
         this.arrivalMessage = arrivalMessage;
+    }
+
+    setBlockInfo(blockInfo) {
+        this.blockInfo = blockInfo;
+    }
+
+    fetchSocketAnswers() {
+        this.setSocket();
+        this.socket.on('getMessage', data => {
+            this.setArrivalMessage({
+                id: data.id,
+                sender_id: data.senderId,
+                dialog_id: data.dialogId,
+                text: data.text,
+                is_read: data.isRead,
+                created_at: Date.now(),
+            })
+        })
+        this.socket.on('getDialog', data => {
+            this.setDialogs([...this.dialogs, {
+                id: data.id,
+                user_id: data.receiverId,
+                receiver_id: data.userId,
+                receiver_name: data.receiverName,
+                last_message: data.lastMessage,
+                missed_messages: data.missedMessages,
+                created_at: data.createdAt
+            }])
+        })
+        this.socket.on('getBlocked', data => {
+            this.user.is_blocked = data.blockStatus
+            this.setBlockInfo(data);
+        })
+    }
+
+    addUserToSocket() {
+        this.socket.emit('addUser', this.user.id);
+    }
+
+    sendMessageToSocket(newMessageText) {
+        this.socket.emit('sendMessage', {
+            id: this.getSendedMessageId(),
+            senderId: this.user.id,
+            dialogId: this.currentDialog.id,
+            receiverId: this.currentDialog.receiver_id,
+            text: newMessageText,
+            isRead: false,
+        })
+    }
+
+    sendDialogToSocket(sendedDialog) {
+        this.socket.emit('addDialog', {
+            id: sendedDialog.id,
+            userId: sendedDialog.user_id,
+            receiverId: sendedDialog.receiver_id,
+            receiverName: this.user.first_name + ' ' + this.user.last_name,
+            lastMessage: sendedDialog.last_message,
+            missedMessages: sendedDialog.missed_messages,
+            createdAt: sendedDialog.created_at
+        })
     }
 
     async login(email, password) {
@@ -243,6 +319,52 @@ export default class Store{
                 missed_messages: 0,
                 created_at: response.data.created_at
             }]);
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async getAdminUsers() {
+        try {
+            const response = await ChatService.getAdminUsers(this.user.id);
+            this.setAdminUsers(response.data);
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async blockUser(changedUser, blockStatus) {
+        try {
+            await ChatService.blockUser(this.user.id, changedUser.id, blockStatus);
+            this.adminUsers = this.adminUsers.map(user => {
+                if (user.id === changedUser.id)
+                    user.is_blocked = blockStatus;
+                return user;
+            })
+            this.socket.emit('setBlocked', {
+                receiverId: changedUser.id,
+                userName: this.user.first_name + ' ' + this.user.last_name,
+                userEmail: this.user.email,
+                blockStatus: blockStatus
+            })
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async getBlockInfo() {
+        try {
+            const response = await ChatService.getBlockInfo(this.user.admin_id);
+            this.setBlockInfo(response.data);
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async deleteUser(deletedUser) {
+        try {
+            const response = await ChatService.deleteUser(deletedUser.id);
+            this.setAdminUsers(this.adminUsers.filter((user) => user.id !== deletedUser.id))
         } catch (e) {
             console.log(e.response?.data?.message);
         }

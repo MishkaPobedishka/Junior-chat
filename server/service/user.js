@@ -40,7 +40,6 @@ class UserService {
         const user = await User.findOne({
             where: {email: email}
         });
-        console.log(user);
         if (!user) {
             throw ApiError.BadRequest('Пользователь с таким email не найден')
         }

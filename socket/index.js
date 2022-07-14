@@ -40,7 +40,6 @@ io.on('connection', (socket) => {
 
     socket.on('addDialog', ({id, userId, receiverId, receiverName, lastMessage, missedMessages, createdAt}) => {
         const user = findUser(receiverId);
-        console.log(receiverId);
         io.to(user?.socketId).emit('getDialog', {
             id,
             userId,
@@ -50,7 +49,16 @@ io.on('connection', (socket) => {
             missedMessages,
             createdAt
         })
-        console.log('done')
+    })
+
+    socket.on('setBlocked', ({receiverId, userName, userEmail, blockStatus}) => {
+        const user = findUser(receiverId);
+        io.to(user?.socketId).emit('getBlocked', {
+            receiverId,
+            userName,
+            userEmail,
+            blockStatus
+        })
     })
 
     socket.on('disconnect', () => {

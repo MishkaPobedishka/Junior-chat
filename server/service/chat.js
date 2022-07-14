@@ -9,6 +9,7 @@ const Dialog = require("../db/models/dialog");
 const Message = require("../db/models/message");
 const DialogDTO = require("../dtos/dialog");
 const UpdateResultDTO = require("../dtos/updateResult");
+const DeleteResultDTO = require("../dtos/deleteResult");
 
 class ChatService {
     async getNewDialogsUsers(userId) {
@@ -177,6 +178,51 @@ class ChatService {
             }
         });
         return new UpdateResultDTO(messages, 'Message', 'isRead', 'true');
+    }
+
+    async getAdminUsers(userId) {
+        const users = await User.findAll({
+            where: {
+                id: {
+                    [Op.ne]: userId
+                }
+            }
+        })
+        return users.map(user => {
+            return new UserDTO(user);
+        });
+    }
+
+    async blockUser(adminId, userId, blockStatus) {
+        const admin_id = blockStatus ? adminId : null;
+        await User.update({is_blocked: blockStatus, admin_id}, {
+            where: {
+                id: userId
+            }
+        });
+        return new UpdateResultDTO(userId, 'User', 'isBlocked', blockStatus);
+    }
+
+    async getBlockInfo(adminId) {
+        const admin = await User.findOne({
+            where: {
+                id: adminId
+            }
+        })
+        return {
+            userName: admin.first_name + ' ' + admin.last_name,
+            userEmail: admin.email
+        }
+
+    }
+
+    async deleteUser(userId) {
+        await User.destroy({
+            where: {
+                id: userId
+            }
+        })
+        return new DeleteResultDTO(userId);
     }
 }
 

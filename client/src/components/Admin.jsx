@@ -1,5 +1,5 @@
-import React, {useContext} from 'react';
-import {Button, Container, Navbar} from "react-bootstrap";
+import React, {useContext, useEffect} from 'react';
+import {Button, Card, Col, Container, Navbar, Row} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import {CHAT_ROUTE} from "../utils/const";
 import {Context} from "../index";
@@ -9,9 +9,25 @@ import '../styles/admin.css'
 const Admin = () => {
     const {store} = useContext(Context);
 
+    useEffect(() => {
+        async function fetchAdminUsers() {
+            await store.getAdminUsers();
+        }
+        fetchAdminUsers();
+    }, []);
+
+
     const handleClickLogout = (e) => {
         e.preventDefault();
         store.logout();
+    }
+
+    const handleBlockUser = async (user, blockStatus) => {
+        await store.blockUser(user, blockStatus);
+    }
+
+    const handleDeleteUser = async (user) => {
+        await store.deleteUser(user);
     }
 
     return (
@@ -43,7 +59,37 @@ const Admin = () => {
                 </Container>
             </Navbar>
             <Container className='admin-panel-wrapper'>
-                admin panel
+                <Row xs={1} md={2} lg={3} className='row-wrapper'>
+                    {store.adminUsers.map((user) => (
+                        <Col className="g-4 h-25">
+                            <Card key={user.id}>
+                                <Container className='card-wrapper'>
+                                    <Card.Body>
+                                        <Card.Title className='text-center'>{user.first_name + ' ' + user.last_name}</Card.Title>
+                                        <Card.Text className='text-center'>
+                                            email: {user.email}
+                                        </Card.Text>
+                                        <Container className='button-wrapper'>
+                                            {user.is_blocked ?
+                                                <Button variant='warning' onClick={
+                                                    () => handleBlockUser(user, false)
+                                                }>Разблокировать</Button>
+                                                :
+                                                <Button variant='warning' onClick={
+                                                    () => handleBlockUser(user, true)
+                                                }>Заблокировать</Button>
+                                            }
+
+                                            <Button variant='danger' onClick={
+                                                () => handleDeleteUser(user)
+                                            }>Удалить</Button>
+                                        </Container>
+                                    </Card.Body>
+                                </Container>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
             </Container>
         </Container>
     );

@@ -23,6 +23,10 @@
     display: flex;
 }
 
+.blocked-wrapper {
+    flex-direction: column;
+}
+
 .dialogs-wrapper {
     margin: 0!important;
     position: relative;
@@ -98,6 +102,12 @@
 .noDialog {
     margin: auto;
     font-size: 20px;
+}
+
+.blocked {
+    margin: 0 auto;
+    font-size: 30px;
+    max-height: 100px;
 }
 
 .buttons {

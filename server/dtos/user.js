@@ -5,6 +5,7 @@ module.exports = class UserDTO {
     email;
     is_admin;
     is_blocked;
+    admin;
 
     constructor(model) {
         this.id = model.id;
@@ -13,5 +14,6 @@ module.exports = class UserDTO {
         this.email = model.email;
         this.is_admin = model.is_admin;
         this.is_blocked = model.is_blocked;
+        this.admin_id = model.admin_id;
     }
 }
