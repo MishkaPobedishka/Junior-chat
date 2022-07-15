@@ -139,9 +139,7 @@ const Chat = () => {
                     <Navbar.Brand>
                         <img
                             src="https://img2.freepng.ru/20180329/zue/kisspng-computer-icons-user-profile-person-5abd85306ff7f7.0592226715223698404586.jpg"
-                            width="50"
-                            height="50"
-                            className="d-inline-block brand"
+                            className="d-inline-block brand avatar"
                             alt="React Bootstrap logo"
                         />{' '}
                         {store.user.first_name + ' ' + store.user.last_name}

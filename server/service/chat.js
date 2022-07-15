@@ -231,6 +231,13 @@ class ChatService {
                 id: userId
             }
         })
+        await Dialog.destroy({
+            where: {
+                users : {
+                    [Op.contains] : [userId]
+                }
+            }
+        })
         return new DeleteResultDTO(userId);
     }
 }
