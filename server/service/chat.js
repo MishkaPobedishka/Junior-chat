@@ -1,8 +1,6 @@
-const {Sequelize, Op } = require('sequelize');
+const { Op } = require('sequelize');
 const User = require('../db/models/user');
-const bcrypt = require("bcrypt");
 const uuid = require('uuid')
-const tokenService = require('./token')
 const UserDTO = require('../dtos/user')
 const ApiError = require('../exceptions/api-error')
 const Dialog = require("../db/models/dialog");
@@ -44,10 +42,9 @@ class ChatService {
                 ]
             }
         })
-        const usersDTOs = users.map(user => {
+        return users.map(user => {
             return new UserDTO(user);
-        })
-        return usersDTOs;
+        });
     }
 
     async addNewDialog(userId, receiverId) {
@@ -61,7 +58,7 @@ class ChatService {
         })
     }
 
-    async getDialogs(userId) {
+    async getDialogs(filter, userId) {
         const dialogs = await Dialog.findAll({
             where : {
                 users : {
@@ -75,12 +72,24 @@ class ChatService {
         if (!dialogs) {
             return dialogs;
         }
-        let dialogDTOs = await Promise.all(dialogs.map(async dialog => {
-            return await this.getExtraDialogInfo(dialog, userId)
+        const dialogDTOs = await Promise.all(dialogs.map(async dialog => {
+            return await this.getExtraDialogInfo(dialog, userId, filter)
         }))
-        return {
-            dialogs: dialogDTOs
+        let filteredDialogDTOs;
+        if(filter !== ''){
+            filteredDialogDTOs = this.getFilteredDialogs(dialogDTOs, filter);
         }
+        else {
+            filteredDialogDTOs = dialogDTOs;
+        }
+        return {
+            dialogs: filteredDialogDTOs
+        }
+    }
+
+    getFilteredDialogs(dialogs, filter) {
+        console.log(dialogs, filter);
+        return dialogs.filter(dialog => dialog.receiver_name.includes(filter));
     }
 
     async getExtraDialogInfo(dialog, userId) {

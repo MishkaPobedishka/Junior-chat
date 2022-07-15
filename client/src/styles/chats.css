@@ -133,3 +133,14 @@
 .admin-link:hover {
     color: white;
 }
+
+.input-wrapper {
+    position: relative;
+}
+
+.filter-button {
+    border-radius: 25%;
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+}

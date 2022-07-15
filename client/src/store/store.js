@@ -21,11 +21,16 @@ export default class Store{
     isLoading = false;
     isAdmin = false;
     isBlocked = false;
+    dialogFilter = '';
 
     socket = null;
 
     constructor() {
         makeAutoObservable(this);
+    }
+
+    setDialogFilter(filter) {
+        this.dialogFilter = filter;
     }
 
     setSocket() {
@@ -217,7 +222,7 @@ export default class Store{
 
     async getDialogs() {
         try {
-            const response = await ChatService.getDialogs(this.user.id);
+            const response = await ChatService.getDialogs(this.dialogFilter, this.user.id);
             this.setDialogs(response.data.dialogs);
         } catch (e) {
             console.log(e.response?.data?.message);
@@ -390,5 +395,9 @@ export default class Store{
         } catch (e) {
             console.log(e.response?.data?.message);
         }
+    }
+
+    async fetchFilteredDialogs() {
+
     }
 }

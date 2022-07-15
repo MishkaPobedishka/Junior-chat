@@ -23,7 +23,8 @@ class ChatController {
 
     async getDialogs(req, res, next) {
         try {
-            const dialogs = await chatService.getDialogs(req.params.userId);
+            const {filter, userId} = req.body;
+            const dialogs = await chatService.getDialogs(filter, userId);
             return res.json(dialogs);
         } catch (e) {
             next(e);

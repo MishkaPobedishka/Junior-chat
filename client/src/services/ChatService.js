@@ -1,8 +1,8 @@
 import api from "../http";
 
 export default class ChatService {
-    static async getDialogs(userId) {
-        return api.get('/dialogs/' + userId)
+    static async getDialogs(filter, userId) {
+        return api.post('/dialogs', {filter, userId})
     }
 
     static async getMessages(dialogId) {

@@ -6,8 +6,7 @@ import '../styles/chats.css'
 import {useEffect} from "react";
 import Dialog from "./Dialog";
 import Message from "./Message";
-import {io} from 'socket.io-client';
-import {ADMIN_ROUTE, SOCKET_URL} from "../utils/const";
+import {ADMIN_ROUTE} from "../utils/const";
 import User from "./User";
 import {Link} from "react-router-dom";
 
@@ -33,6 +32,12 @@ const Chat = () => {
         setDialogNewData();
     }, [store.arrivalMessage]);
 
+    useEffect(() => {
+        async function fetchFilteredDialogs() {
+            await store.getDialogs();
+        }
+        fetchFilteredDialogs();
+    }, [store.dialogFilter])
 
     useEffect(() => {
         store.addUserToSocket();
@@ -40,8 +45,7 @@ const Chat = () => {
 
     useEffect(() => {
         async function fetchDialogs() {
-            await store.getDialogs(store.user.id);
-            console.log(store.dialogs);
+            await store.getDialogs();
             store.setAdmin(store.user.is_admin);
             store.setBlocked(store.user.is_blocked);
             if(store.user.is_blocked)
@@ -165,10 +169,27 @@ const Chat = () => {
                 :
                 <>
                     <Container className='dialogs-wrapper'>
-                        <input placeholder='Найти диалог' className='dialog-input'></input>
+                        <div className='input-wrapper'>
+                            <input
+                                placeholder='Найти диалог'
+                                className='dialog-input'
+                                onChange={(e) => store.setDialogFilter(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                value={store.dialogFilter}>
+                            </input>
+                            <Button variant='light'
+                                    className='filter-button'
+                                    onClick={() => {store.setDialogFilter('')}}
+                            >
+                                x
+                            </Button>
+                        </div>
                         <div className='dialog-list'>
                             {store.dialogs.map((dialog) => (
-                                <div key={dialog.id} onClick={() => {store.setCurrentDialog(dialog)}}>
+                                <div key={dialog.id} onClick={() => {
+                                    store.setCurrentDialog(dialog)
+                                    store.setDialogFilter('');
+                                }}>
                                     <Dialog
                                         key={dialog.id}
                                         receiver_name={dialog.receiver_name}
