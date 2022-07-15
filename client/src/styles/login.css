@@ -29,5 +29,10 @@
 .registrationBlock {
     display: flex;
     flex-direction: row;
+}
 
+.api-error {
+    color: red;
+    margin-top: 5px;
+    margin-left: 5px;
 }

@@ -13,6 +13,7 @@ const LoginForm = () => {
     const [messageLogin, setMessageLogin] = useState('');
     const {store} = useContext(Context);
     const handleClickLogin = async (e) => {
+        store.setLoginError('');
         e.preventDefault();
         await store.login(email, password)
     }
@@ -38,6 +39,9 @@ const LoginForm = () => {
                 <Form.Text className="text-muted">
                     {messageLogin}
                 </Form.Text>
+                {store.loginError !== '' &&
+                    <Form.Label className='text-center api-error'>{store.loginError}</Form.Label>
+                }
             </Form.Group>
             <Form.Group className="mb-3">
                 <Button

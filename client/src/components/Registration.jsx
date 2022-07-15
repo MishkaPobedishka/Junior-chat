@@ -14,6 +14,7 @@ const Registration = () => {
     const {store} = useContext(Context);
 
     const handleClickRegistration = async (e) => {
+        store.setRegistrationError('');
         e.preventDefault();
         await store.registration(firstName, lastName, email, password)
     }
@@ -61,6 +62,9 @@ const Registration = () => {
                         onChange={e => setPassword(e.target.value)}
                         value={password}
                     />
+                    {store.registrationError !== '' &&
+                        <Form.Label className='text-center api-error'>{store.registrationError}</Form.Label>
+                    }
                 </Form.Group>
                     <Button
                         className='controlRegistrationButton'

@@ -22,11 +22,21 @@ export default class Store{
     isAdmin = false;
     isBlocked = false;
     dialogFilter = '';
+    loginError = '';
+    registrationError = '';
 
     socket = null;
 
     constructor() {
         makeAutoObservable(this);
+    }
+
+    setLoginError(error) {
+        this.loginError = error;
+    }
+
+    setRegistrationError(error) {
+        this.registrationError = error;
     }
 
     setDialogFilter(filter) {
@@ -170,11 +180,12 @@ export default class Store{
         this.setLoading(true);
         try {
             const response = await AuthService.login(email, password);
+            console.log(response.status);
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user)
         } catch (e) {
-            console.log(e.response?.data?.message);
+            this.setLoginError(e.response?.data?.message);
         } finally {
             this.setLoading(false);
         }
@@ -188,7 +199,7 @@ export default class Store{
             this.setAuth(true);
             this.setUser(response.data.user)
         } catch (e) {
-            console.log(e.response?.data?.message);
+            this.setRegistrationError(e.response?.data?.message);
         } finally {
             this.setLoading(false);
         }
