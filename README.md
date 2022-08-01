@@ -14,4 +14,21 @@
 После перейти по адресу [Тестовое задание](http://localhost:1000)<br>
 
 
+Используемые технологии
+=
 
+Frontend
+=
+React, react-bootstrap, MobX, react-router-dom, axios
+
+Backend
+=
+Node.js, Express, JWT, Sequelize, bcrypt
+
+Database
+=
+Postgres
+
+Realtime
+=
+Socket.io, socket.io-client
