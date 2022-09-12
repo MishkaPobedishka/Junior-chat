@@ -11,7 +11,7 @@
 
 Для запуска в терминале запустить команду <br>
 
-`docker-compose up -d` (Необходимы установленные docker и docker-compose)<br>
+`docker-compose up -d`<br>
 
 После перейти по адресу [Тестовое задание](http://localhost:1000)<br>
 
