@@ -7,6 +7,8 @@
 
 Запуск
 =
+Используется микросервисная архитектура на основе docker и docker-container<br>
+
 Для запуска в терминале запустить команду <br>
 
 `docker-compose up -d` (Необходимы установленные docker и docker-compose)<br>
